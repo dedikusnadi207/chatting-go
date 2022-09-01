@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func main() {
+func runClient() {
 
 	fmt.Println("Enter Server IP:Port ::: ")
 	reader := bufio.NewReader(os.Stdin)

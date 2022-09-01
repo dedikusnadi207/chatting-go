@@ -2,21 +2,20 @@ package main
 
 import (
 	"belajar-chatting-grpc/chatserver"
-	"flag"
+	"belajar-chatting-grpc/utils"
 	"log"
 	"net"
 
 	"google.golang.org/grpc"
 )
 
-func runServer() {
-	port := *flag.String("p", "8899", "")
-	flag.Parse()
+func runServer(port string) {
+	port = utils.AvailablePort("localhost", port)
 	listen, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		log.Fatalf("Cannot listen @%v::%v", port, err)
 	}
-	log.Println("Listening @:", port)
+	log.Println("Running server on @:" + port)
 
 	grpcServer := grpc.NewServer()
 
