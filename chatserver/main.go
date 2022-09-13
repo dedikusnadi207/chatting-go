@@ -1,6 +1,7 @@
 package chatserver
 
 import (
+	"belajar-chatting-grpc/utils"
 	"log"
 	"math/rand"
 	"sync"
@@ -15,8 +16,9 @@ type messageUnit struct {
 }
 
 type messageHandle struct {
-	MQue []messageUnit
-	mu   sync.Mutex
+	MQue              []messageUnit
+	mu                sync.Mutex
+	clientUniqueCodes []int
 }
 
 var messageHandleObject = messageHandle{}
@@ -26,6 +28,7 @@ type ChatServer struct {
 
 func (cs *ChatServer) ChatService(csi Services_ChatServiceServer) error {
 	clientUniqueCode := rand.Intn(1e6)
+	messageHandleObject.clientUniqueCodes = append(messageHandleObject.clientUniqueCodes, clientUniqueCode)
 	errch := make(chan error)
 
 	// receive message - init go routine
@@ -43,6 +46,8 @@ func receiveFromStream(csi Services_ChatServiceServer, clientUniqueCode int, err
 		msg, err := csi.Recv()
 		if err != nil {
 			log.Printf("Error receiveFromStream :: %v", err)
+			// Remove active clients
+			messageHandleObject.clientUniqueCodes = utils.RemoveItem(messageHandleObject.clientUniqueCodes, clientUniqueCode)
 			errch <- err
 		} else {
 			messageHandleObject.mu.Lock()
@@ -62,6 +67,10 @@ func receiveFromStream(csi Services_ChatServiceServer, clientUniqueCode int, err
 // Send Messages
 func sendToStream(csi Services_ChatServiceServer, clientUniqueCode int, errch chan error) {
 	for {
+		if !utils.InArray(messageHandleObject.clientUniqueCodes, clientUniqueCode) {
+			// Stop go-routine when client cancelled
+			break
+		}
 		for {
 			time.Sleep(500 * time.Millisecond)
 			messageHandleObject.mu.Lock()

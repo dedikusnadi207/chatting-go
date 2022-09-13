@@ -29,7 +29,7 @@ func runClient() {
 	conn, err := grpc.Dial(serverID, grpc.WithInsecure())
 
 	if err != nil {
-		log.Fatalf("Faile to conncet to gRPC server :: %v", err)
+		log.Fatalf("Failed to conncet to gRPC server :: %v", err)
 	}
 	defer conn.Close()
 
